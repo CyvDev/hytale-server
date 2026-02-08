@@ -1,0 +1,14 @@
+# .github/CODEOWNERS
+# Default owner
+* @CyvDev
+
+# CI/CD
+.github/ @CyvDev
+
+# Security-sensitive files
+Dockerfile @CyvDev
+scripts/entrypoint.sh @CyvDev
+security/ @CyvDev
+
+# Documentation — can be more permissive
+docs/**/* @CyvDev

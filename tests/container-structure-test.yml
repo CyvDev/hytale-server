@@ -1,0 +1,101 @@
+schemaVersion: '2.0.0'
+
+metadataTest:
+  labels:
+    - key: 'org.opencontainers.image.title'
+      value: 'Hytale Docker Server'
+    - key: 'org.opencontainers.image.licenses'
+      value: 'Apache-2.0'
+  exposedPorts: ["25565"]
+  workdir: "/opt/hytale"
+
+commandTests:
+  # ─── Java ───
+  - name: "Java 25 is installed"
+    command: "java"
+    args: ["--version"]
+    expectedOutput: ["25"]
+    exitCode: 0
+
+  - name: "Java is from Temurin"
+    command: "java"
+    args: ["--version"]
+    expectedOutput: ["Temurin"]
+    exitCode: 0
+
+  - name: "javac is NOT available (JRE only)"
+    command: "which"
+    args: ["javac"]
+    exitCode: 1
+
+  # ─── User ───
+  - name: "Running as non-root"
+    command: "id"
+    args: ["-u"]
+    excludedOutput: ["^0$"]
+    exitCode: 0
+
+  - name: "User is hytale"
+    command: "whoami"
+    expectedOutput: ["hytale"]
+    exitCode: 0
+
+  # ─── Security ───
+  - name: "No package manager cache"
+    command: "sh"
+    args: ["-c", "ls /var/cache/apk/ 2>/dev/null | wc -l"]
+    expectedOutput: ["0"]
+    exitCode: 0
+
+  - name: "No compiler available"
+    command: "which"
+    args: ["gcc"]
+    exitCode: 1
+
+  - name: "No wget"
+    command: "which"
+    args: ["wget"]
+    exitCode: 1
+
+  - name: "No curl"
+    command: "which"
+    args: ["curl"]
+    exitCode: 1
+
+  # ─── Entrypoint ───
+  - name: "Entrypoint script exists and is executable"
+    command: "test"
+    args: ["-x", "/opt/hytale/scripts/entrypoint.sh"]
+    exitCode: 0
+
+  - name: "Healthcheck script exists and is executable"
+    command: "test"
+    args: ["-x", "/opt/hytale/scripts/healthcheck.sh"]
+    exitCode: 0
+
+fileExistenceTests:
+  - name: "Server directory exists"
+    path: "/opt/hytale"
+    shouldExist: true
+    isExecutableBy: "owner"
+
+  - name: "Data directory exists"
+    path: "/opt/hytale/data"
+    shouldExist: true
+
+  - name: "Tmp directory exists"
+    path: "/opt/hytale/tmp"
+    shouldExist: true
+
+  - name: "No .git directory"
+    path: "/opt/hytale/.git"
+    shouldExist: false
+
+  - name: "No Dockerfile in image"
+    path: "/opt/hytale/Dockerfile"
+    shouldExist: false
+
+fileContentTests:
+  - name: "No root entry in passwd with shell"
+    path: "/etc/passwd"
+    excludedContent: ["root:.*:/bin/bash"]
